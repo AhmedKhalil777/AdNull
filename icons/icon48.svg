@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="48" height="48" fill="#ff4444"/>
+  
+  <!-- White circle -->
+  <circle cx="24" cy="24" r="16.799999999999997" fill="white" stroke="#ff4444" stroke-width="3"/>
+  
+  <!-- Prohibition line -->
+  <line x1="12" y1="12" x2="36" y2="36" stroke="#ff4444" stroke-width="4" stroke-linecap="round"/>
+  
+  <text x="24" y="46.8" text-anchor="middle" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="#666">Ad</text>
+</svg>

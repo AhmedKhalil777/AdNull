@@ -1,0 +1,244 @@
+name: Build and Publish AdNull Extension
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish to Chrome Web Store'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  validate:
+    name: Validate Extension
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Validate extension
+      run: npm run validate
+      
+    - name: Upload validation results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: validation-results
+        path: |
+          validation-*.log
+          *.json
+
+  build:
+    name: Build Extension
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build extension
+      run: npm run build
+      
+    - name: Package extension
+      run: npm run package
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: extension-package
+        path: |
+          dist/
+          packages/
+        retention-days: 30
+
+  test:
+    name: Test Extension
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: extension-package
+        
+    - name: Run tests
+      run: npm run test
+      
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          test-results/
+          coverage/
+
+  publish-staging:
+    name: Publish to Staging
+    runs-on: ubuntu-latest
+    needs: [validate, build, test]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: extension-package
+        
+    - name: Publish to staging
+      env:
+        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID_STAGING }}
+        CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+        CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+        CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        AUTO_PUBLISH: false
+      run: npm run publish
+
+  publish-production:
+    name: Publish to Production
+    runs-on: ubuntu-latest
+    needs: [validate, build, test]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.publish == 'true'
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: extension-package
+        
+    - name: Publish to Chrome Web Store
+      env:
+        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+        CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+        CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+        CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        AUTO_PUBLISH: ${{ github.event.inputs.publish == 'true' && 'true' || 'false' }}
+      run: npm run publish
+      
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: AdNull ${{ github.ref }}
+        body: |
+          ## AdNull Extension Release
+          
+          ### Features
+          - Enhanced skip strategies with multiple simultaneous methods
+          - Arabic language support (تخطي, تخطى, تجاوز)
+          - Multilingual support (10+ languages)
+          - Real-time ad monitoring and debugging tools
+          - Aggressive retry logic for stubborn ads
+          - Faster detection (250ms intervals)
+          
+          ### Installation
+          Download the extension from Chrome Web Store or install manually.
+          
+          ### Changelog
+          See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+        draft: false
+        prerelease: false
+        
+    - name: Upload release assets
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: packages/adnull-latest.zip
+        asset_name: adnull-extension.zip
+        asset_content_type: application/zip
+
+  notify:
+    name: Notify Success
+    runs-on: ubuntu-latest
+    needs: [publish-production]
+    if: always() && (needs.publish-production.result == 'success')
+    
+    steps:
+    - name: Notify Slack
+      if: env.SLACK_WEBHOOK_URL != ''
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        curl -X POST -H 'Content-type: application/json' \
+        --data '{"text":"🎉 AdNull Extension published successfully to Chrome Web Store!"}' \
+        $SLACK_WEBHOOK_URL
+        
+    - name: Notify Discord
+      if: env.DISCORD_WEBHOOK_URL != ''
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      run: |
+        curl -X POST -H 'Content-type: application/json' \
+        --data '{"content":"🎉 AdNull Extension published successfully to Chrome Web Store!"}' \
+        $DISCORD_WEBHOOK_URL 

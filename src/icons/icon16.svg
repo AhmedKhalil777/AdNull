@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="16" height="16" fill="#ff4444"/>
+  
+  <!-- White circle -->
+  <circle cx="8" cy="8" r="5.6" fill="white" stroke="#ff4444" stroke-width="2"/>
+  
+  <!-- Prohibition line -->
+  <line x1="4" y1="4" x2="12" y2="12" stroke="#ff4444" stroke-width="3" stroke-linecap="round"/>
+  
+  
+</svg>

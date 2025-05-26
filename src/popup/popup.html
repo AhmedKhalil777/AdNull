@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdNull - YouTube Ad Blocker</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <img src="../icons/icon32.png" alt="AdNull" class="logo-icon">
+                <h1 class="title">AdNull</h1>
+            </div>
+            <div class="version">v1.0.0</div>
+        </header>
+
+        <!-- Main Controls -->
+        <main class="main">
+            <!-- Master Toggle -->
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">
+                        <span class="label-text">Extension Enabled</span>
+                        <div class="toggle">
+                            <input type="checkbox" id="enabledToggle" class="toggle-input">
+                            <span class="toggle-slider"></span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Auto Skip Setting -->
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">
+                        <span class="label-text">Auto-Skip Ads</span>
+                        <div class="toggle">
+                            <input type="checkbox" id="autoSkipToggle" class="toggle-input">
+                            <span class="toggle-slider"></span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Skip Delay Setting -->
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">
+                        <span class="label-text">Skip Delay</span>
+                        <select id="skipDelaySelect" class="select-input">
+                            <option value="0">Instant</option>
+                            <option value="500">0.5 seconds</option>
+                            <option value="1000">1 second</option>
+                            <option value="2000">2 seconds</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+        </main>
+
+        <!-- Status -->
+        <div class="status-section">
+            <div class="status-item">
+                <span class="status-label">Status:</span>
+                <span id="statusText" class="status-value">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <button id="testButton" class="btn btn-secondary">Test Skip</button>
+            <button id="resetButton" class="btn btn-secondary">Reset</button>
+        </footer>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html> 

@@ -1,0 +1,61 @@
+{
+  "name": "adnull-youtube-ad-blocker",
+  "version": "1.0.3",
+  "description": "AdNull - Advanced YouTube Ad Blocker with multilingual support and enhanced skip strategies",
+  "main": "src/content.js",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "package": "node scripts/package.js",
+    "publish": "node scripts/publish.js",
+    "build-and-package": "npm run build && npm run package",
+    "release": "npm run build && npm run package && npm run publish",
+    "test": "node scripts/test.js",
+    "validate": "node scripts/validate.js",
+    "clean": "node scripts/clean.js",
+    "dev": "powershell -ExecutionPolicy Bypass -File launch-modular.ps1",
+    "zip": "node scripts/zip.js"
+  },
+  "keywords": [
+    "youtube",
+    "ad-blocker",
+    "chrome-extension",
+    "arabic-support",
+    "multilingual",
+    "ad-skipper"
+  ],
+  "author": "AdNull Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/AdNull.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/AdNull/issues"
+  },
+  "homepage": "https://github.com/your-username/AdNull#readme",
+  "devDependencies": {
+    "archiver": "^6.0.1",
+    "chrome-webstore-upload": "^3.0.0",
+    "fs-extra": "^11.1.1",
+    "chalk": "^4.1.2",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "extensionInfo": {
+    "name": "AdNull - YouTube Ad Blocker",
+    "shortName": "AdNull",
+    "description": "Advanced YouTube ad blocker with Arabic language support and enhanced skip strategies",
+    "category": "productivity",
+    "permissions": [
+      "activeTab",
+      "storage",
+      "scripting"
+    ],
+    "hostPermissions": [
+      "*://www.youtube.com/*",
+      "*://youtube.com/*"
+    ]
+  }
+} 

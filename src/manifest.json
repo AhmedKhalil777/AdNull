@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "AdNull - YouTube Ad Blocker",
+  "version": "1.0.0",
+  "description": "Simple and effective YouTube ad blocker with auto-skip functionality",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": [
+        "modules/config.js",
+        "modules/storage.js", 
+        "modules/adSkipper.js",
+        "modules/logger.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "AdNull - YouTube Ad Blocker"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png", 
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+} 
