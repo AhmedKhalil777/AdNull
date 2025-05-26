@@ -1,0 +1,64 @@
+name: Self-Contained Build
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Self-Contained Build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Manual checkout
+      run: |
+        echo "Performing manual git checkout..."
+        git clone --depth=1 ${{ github.server_url }}/${{ github.repository }}.git .
+        git checkout ${{ github.sha }}
+        
+    - name: Setup Node.js manually
+      run: |
+        echo "Setting up Node.js..."
+        curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        node --version
+        npm --version
+        
+    - name: Install dependencies
+      run: |
+        echo "Installing dependencies..."
+        npm ci --prefer-offline --no-audit --no-fund --no-optional
+        
+    - name: Run full pipeline
+      run: |
+        echo "Running validation..."
+        npm run validate
+        
+        echo "Building extension..."
+        npm run build
+        
+        echo "Packaging extension..."
+        npm run package
+        
+        echo "Running tests..."
+        npm run test
+        
+        echo "Testing workflow..."
+        npm run test-workflow
+        
+    - name: Display results
+      run: |
+        echo "=== BUILD COMPLETED SUCCESSFULLY ==="
+        echo "Extension version: $(node -p "require('./package.json').version")"
+        echo "Build directory contents:"
+        ls -la dist/
+        echo ""
+        echo "Package directory contents:"
+        ls -la packages/
+        echo ""
+        echo "Package size:"
+        du -h packages/adnull-latest.zip
+        echo ""
+        echo "=== READY FOR MANUAL UPLOAD ==="
+        echo "Download packages/adnull-latest.zip and upload to Chrome Web Store" 
