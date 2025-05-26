@@ -13,7 +13,8 @@
     "validate": "node scripts/validate.js",
     "clean": "node scripts/clean.js",
     "dev": "powershell -ExecutionPolicy Bypass -File launch-modular.ps1",
-    "zip": "node scripts/zip.js"
+    "zip": "node scripts/zip.js",
+    "test-workflow": "node scripts/test-workflow.js"
   },
   "keywords": [
     "youtube",

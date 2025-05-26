@@ -69,7 +69,8 @@ Write-Host "- Multiple click methods (mouse, touch, keyboard)" -ForegroundColor 
 Write-Host "- Video fast-forward with event dispatching" -ForegroundColor Green
 Write-Host "- Text-based skip button search in all languages" -ForegroundColor Green
 Write-Host "- Generic area clicking for hidden buttons" -ForegroundColor Green
-Write-Host "- Arabic language support (تخطي, تخطى, تجاوز)" -ForegroundColor Green
+Write-Host "- Arabic language support (skip, omit, bypass)" -ForegroundColor Green
 Write-Host "- Multilingual support (10+ languages)" -ForegroundColor Green
 Write-Host "- Real-time ad monitoring and debugging tools" -ForegroundColor Green
-Write-Host "- Enhanced button detection with visibility checks" -ForegroundColor Green 
+Write-Host "- Enhanced button detection with visibility checks" -ForegroundColor Green
+Write-Host "- Organized file structure" -ForegroundColor Green 

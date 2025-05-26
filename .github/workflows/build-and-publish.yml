@@ -21,28 +21,32 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
       
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
         node-version: '18'
         cache: 'npm'
         
     - name: Install dependencies
-      run: npm ci
-      
+      run: |
+        npm ci --prefer-offline --no-audit
+        
     - name: Validate extension
       run: npm run validate
       
     - name: Upload validation results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       if: always()
       with:
-        name: validation-results
+        name: validation-results-${{ github.run_id }}
         path: |
           validation-*.log
           *.json
+        retention-days: 7
 
   build:
     name: Build Extension
@@ -51,17 +55,20 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
       
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
         node-version: '18'
         cache: 'npm'
         
     - name: Install dependencies
-      run: npm ci
-      
+      run: |
+        npm ci --prefer-offline --no-audit
+        
     - name: Build extension
       run: npm run build
       
@@ -69,9 +76,9 @@ jobs:
       run: npm run package
       
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
-        name: extension-package
+        name: extension-package-${{ github.run_id }}
         path: |
           dist/
           packages/
@@ -84,33 +91,37 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
       
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
         node-version: '18'
         cache: 'npm'
         
     - name: Install dependencies
-      run: npm ci
-      
+      run: |
+        npm ci --prefer-offline --no-audit
+        
     - name: Download build artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v3
       with:
-        name: extension-package
+        name: extension-package-${{ github.run_id }}
         
     - name: Run tests
       run: npm run test
       
     - name: Upload test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       if: always()
       with:
-        name: test-results
+        name: test-results-${{ github.run_id }}
         path: |
           test-results/
           coverage/
+        retention-days: 7
 
   publish-staging:
     name: Publish to Staging
@@ -121,21 +132,24 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
       
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
         node-version: '18'
         cache: 'npm'
         
     - name: Install dependencies
-      run: npm ci
-      
+      run: |
+        npm ci --prefer-offline --no-audit
+        
     - name: Download build artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v3
       with:
-        name: extension-package
+        name: extension-package-${{ github.run_id }}
         
     - name: Publish to staging
       env:
@@ -155,21 +169,24 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
       
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
         node-version: '18'
         cache: 'npm'
         
     - name: Install dependencies
-      run: npm ci
-      
+      run: |
+        npm ci --prefer-offline --no-audit
+        
     - name: Download build artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v3
       with:
-        name: extension-package
+        name: extension-package-${{ github.run_id }}
         
     - name: Publish to Chrome Web Store
       env:
@@ -182,41 +199,31 @@ jobs:
       
     - name: Create GitHub Release
       if: startsWith(github.ref, 'refs/tags/v')
-      uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: AdNull ${{ github.ref }}
-        body: |
-          ## AdNull Extension Release
-          
-          ### Features
-          - Enhanced skip strategies with multiple simultaneous methods
-          - Arabic language support (تخطي, تخطى, تجاوز)
-          - Multilingual support (10+ languages)
-          - Real-time ad monitoring and debugging tools
-          - Aggressive retry logic for stubborn ads
-          - Faster detection (250ms intervals)
-          
-          ### Installation
-          Download the extension from Chrome Web Store or install manually.
-          
-          ### Changelog
-          See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
-        draft: false
-        prerelease: false
+      run: |
+        # Extract version from tag
+        VERSION=${GITHUB_REF#refs/tags/v}
         
-    - name: Upload release assets
-      if: startsWith(github.ref, 'refs/tags/v')
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: packages/adnull-latest.zip
-        asset_name: adnull-extension.zip
-        asset_content_type: application/zip
+        # Create release
+        gh release create "v${VERSION}" \
+          --title "AdNull v${VERSION}" \
+          --notes "## AdNull Extension Release v${VERSION}
+        
+        ### Features
+        - Enhanced skip strategies with multiple simultaneous methods
+        - Arabic language support (تخطي, تخطى, تجاوز)
+        - Multilingual support (10+ languages)
+        - Real-time ad monitoring and debugging tools
+        - Aggressive retry logic for stubborn ads
+        - Faster detection (250ms intervals)
+        
+        ### Installation
+        Download the extension from Chrome Web Store or install manually.
+        
+        ### Changelog
+        See [CHANGELOG.md](CHANGELOG.md) for detailed changes." \
+          packages/adnull-latest.zip
 
   notify:
     name: Notify Success
@@ -226,19 +233,15 @@ jobs:
     
     steps:
     - name: Notify Slack
-      if: env.SLACK_WEBHOOK_URL != ''
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
       run: |
         curl -X POST -H 'Content-type: application/json' \
-        --data '{"text":"🎉 AdNull Extension published successfully to Chrome Web Store!"}' \
-        $SLACK_WEBHOOK_URL
+        --data '{"text":"🎉 AdNull Extension v${{ github.ref_name }} published successfully to Chrome Web Store!"}' \
+        ${{ secrets.SLACK_WEBHOOK_URL }}
         
     - name: Notify Discord
-      if: env.DISCORD_WEBHOOK_URL != ''
-      env:
-        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      if: ${{ secrets.DISCORD_WEBHOOK_URL != '' }}
       run: |
         curl -X POST -H 'Content-type: application/json' \
-        --data '{"content":"🎉 AdNull Extension published successfully to Chrome Web Store!"}' \
-        $DISCORD_WEBHOOK_URL 
+        --data '{"content":"🎉 AdNull Extension v${{ github.ref_name }} published successfully to Chrome Web Store!"}' \
+        ${{ secrets.DISCORD_WEBHOOK_URL }} 
